@@ -1,0 +1,89 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+ :root {
+  --background: #ffffff;
+  --foreground: #171717;
+  --toastify-color-success: #4caf50; /* Custom success color */
+  --toastify-color-error: #f44336;   /* Custom error color */
+  --toastify-font-family: "Arial", sans-serif;
+  
+} 
+ @media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #050829;
+  }
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: Arial, Helvetica, sans-serif;
+  background-color: #f4f7fc;
+  padding: 20px;
+}
+
+.mainContainer {
+  max-width:85%;
+  margin-left: 200px;
+}
+
+.mainContainerClosed {
+  /* max-width:65%; */
+  margin-top: 50px;
+}
+/* Container Styles */
+.container {
+  background: white;
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin: auto;
+  text-align: center;
+}
+.error {
+  color: red;
+  font-weight: lighter;
+  font-size: x-small;
+}
+
+/* Heading */
+h1 {
+  font-size: 26px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 20px;
+  color: #323b4c;
+}
+
+/* Form Row */
+.form-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+/* Form Group */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  font-weight: 600;
+  margin-bottom: 5px;
+  color: #525f7f;
+}
+
+
+/* * Mobile Styles */
+@media (max-width: 768px) {
+  .mainContainer {
+    margin-left: 0px;
+    margin-top: 50px;
+  }
+}
