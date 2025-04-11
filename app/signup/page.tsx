@@ -48,7 +48,6 @@ export default function SignupPage() {
   });
 
   const onSubmit = async (data: LoginData) => {
-    console.log(data.repassword, "passs", data.password);
     if (data.password !== data.repassword) {
       setError("password", {
         type: "required",

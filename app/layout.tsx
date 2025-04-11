@@ -4,6 +4,7 @@ import "./globals.css";
 import Providers from "../redux/Providers";
 import NavBar from "@/components/Navbar";
 import ToastProvider from "@/components/Toaster";
+import ReactQueryProvider from "./providers/ReactQueryProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,8 +35,10 @@ export default function RootLayout({
           <div style={{ display: "flex", minHeight: "100vh" }}>
             <NavBar />
             <main style={{ flexGrow: 1, padding: "20px" }}>
-              <ToastProvider />
-              {children}
+              <ReactQueryProvider>
+                <ToastProvider />
+                {children}
+              </ReactQueryProvider>
             </main>
           </div>
         </Providers>

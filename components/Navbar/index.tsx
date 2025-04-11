@@ -1,5 +1,5 @@
 "use client";
-
+import Cookies from "js-cookie";
 import Link from "next/link";
 import { Home, Menu, Search, User, X, Loader } from "lucide-react";
 import "../../css/navbar.css";
@@ -18,6 +18,7 @@ const NavBar = () => {
 
   const handleLogOut = () => {
     localStorage.clear();
+    Cookies.remove("Username");
     dispatch(clearUserData());
   };
 
@@ -34,22 +35,22 @@ const NavBar = () => {
       {isOpen ? (
         <ul className={`nav-links ${isOpen ? "open" : ""}`}>
           <li>
-            <Link href="/" prefetch={true} onClick={handleClick}>
+            <Link href="/dashboard" prefetch={null} onClick={handleClick}>
               Home
             </Link>
           </li>
           <li>
-            <Link href="/tasklist" prefetch={true} onClick={handleClick}>
+            <Link href="/tasklist" prefetch={null} onClick={handleClick}>
               Tasks
             </Link>
           </li>
           <li>
-            <Link href="/add_task_tms" prefetch={true} onClick={handleClick}>
+            <Link href="/add_task_tms" prefetch={null} onClick={handleClick}>
               Add Task
             </Link>
           </li>
           <li>
-            <Link href="/login" prefetch={true} onClick={handleLogOut}>
+            <Link href="/login" prefetch={null} onClick={handleLogOut}>
               Log Out
             </Link>
           </li>

@@ -10,6 +10,8 @@ import { RootState } from "./store";
 import { fetchTasksForOtherUsers } from "@/app/api/fetchTasksForOtherUsers/fetchTasksForOtherUsers";
 import { toast } from "react-toastify";
 import { fetchEmails } from "@/app/api/emails/emalApi";
+import { sendEmail } from "@/app/api/sendEmailApi/fetchApi";
+import { fetchTasksByEmail } from "@/app/api/searchByEmail/searchEmailApi";
 
 export interface PriorityType {
   id: number | null;
@@ -35,12 +37,30 @@ export interface AddTask {
   status?: string;
 }
 
+export interface dragData{
+  id:string;
+  status:string;
+}
+
 export type EmailType = {
   email: string;
 };
 
+const initialTaskForAddTask: AddTask = {
+  id: "",
+  tasktitle: "",
+  description: "",
+  startdate: "",
+  enddate: "",
+  priority: "",
+  assignee: "",
+  email: "",
+  status: "Draft",
+};
+
 export interface AddTasksState {
   priorities?: PriorityType[];
+  updatedTask: AddTask;
   emails?: EmailType[];
   username: string;
   tasks: AddTask[];
@@ -60,6 +80,7 @@ const initialState: AddTasksState = {
   priorities: initialStateForPriority,
   emails: [],
   tasks: [],
+  updatedTask: initialTaskForAddTask,
   username: "",
   loading: false,
   error: null,
@@ -78,7 +99,6 @@ export const addTaskFnSlice = createAsyncThunk(
   async (data: AddTask, { rejectWithValue }) => {
     try {
       const response = await addTask(data);
-      console.log("resss111", response);
       toast.success("Success! One Task is added");
       return response;
     } catch (error: any) {
@@ -93,7 +113,6 @@ export const updateTaskFnSlice = createAsyncThunk(
   async (updatedTask: AddTask, { rejectWithValue }) => {
     try {
       const response = await updateTask(updatedTask);
-      console.log("resss111", response);
       toast.success("Success! One Task is added");
       return response;
     } catch (error: any) {
@@ -138,6 +157,15 @@ export const getEmailsFnInSlice = createAsyncThunk(
   }
 );
 
+//send the emails
+export const sendtEmailsFnInSlice = createAsyncThunk(
+  "addTasks/getAllEmails",
+  async (data: any) => {
+    const response = await sendEmail(data);
+    return response;
+  }
+);
+
 //Get all emails
 export const getEmailForAssigneeFnInSlice = createAsyncThunk(
   "addTasks/getEmailByAssignee",
@@ -146,6 +174,16 @@ export const getEmailForAssigneeFnInSlice = createAsyncThunk(
     return response;
   }
 );
+
+//Get all emails
+export const searchByEmail = createAsyncThunk(
+  "addTasks/searchByEmail",
+  async (emailType: string) => {
+    const response = await fetchTasksByEmail(emailType);
+    return response;
+  }
+);
+
 // Toggle task status
 export const toggleTaskThunk = createAsyncThunk(
   "addTasks/toggleTask",
@@ -162,12 +200,15 @@ const addTasksSlice = createSlice({
       state.tasks = [];
     },
     setTasks: (state, action) => {
-      console.log("aaaaaaaaaa", action);
       state.tasks = action.payload;
     },
   },
   extraReducers: (builder) => {
     builder
+      .addCase(getTaskFnSlice.fulfilled, (state, action) => {
+        state.loading = false;
+        state.tasks = action.payload;
+      })
       .addCase(getTaskForOtherUsersSlice.pending, (state) => {
         state.loading = true;
       })
@@ -179,17 +220,29 @@ const addTasksSlice = createSlice({
         state.loading = false;
         state.error = action.error.message || "Failed to load tasks";
       })
-      .addCase(fetchTaskFnSlice.pending, (state) => {
+
+      .addCase(updateTaskFnSlice.pending, (state) => {
         state.loading = true;
       })
-      .addCase(fetchTaskFnSlice.fulfilled, (state, action) => {
+      .addCase(updateTaskFnSlice.fulfilled, (state, action) => {
         state.loading = false;
-        state.tasks = action.payload;
+        state.updatedTask = action.payload;
       })
-      .addCase(fetchTaskFnSlice.rejected, (state, action) => {
+      .addCase(updateTaskFnSlice.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || "Failed to load tasks";
+        state.error = action.error.message || "Failed to update tasks";
       })
+      // .addCase(fetchTaskFnSlice.pending, (state) => {
+      //   state.loading = true;
+      // })
+      // .addCase(fetchTaskFnSlice.fulfilled, (state, action) => {
+      //   state.loading = false;
+      //   state.tasks = action.payload;
+      // })
+      // .addCase(fetchTaskFnSlice.rejected, (state, action) => {
+      //   state.loading = false;
+      //   state.error = action.error.message || "Failed to load tasks";
+      // })
       .addCase(addTaskFnSlice.fulfilled, (state, action) => {
         state.tasks.unshift(action.payload); // Add new task to the top
       })
@@ -221,6 +274,17 @@ const addTasksSlice = createSlice({
       .addCase(getEmailsFnInSlice.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || "Failed emails";
+      })
+      .addCase(searchByEmail.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(searchByEmail.fulfilled, (state, action) => {
+        state.loading = false;
+        state.tasks = action.payload;
+      })
+      .addCase(searchByEmail.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || "Failed to load tasks";
       });
   },
 });

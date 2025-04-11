@@ -1,6 +1,5 @@
 import { SignUpData } from "@/redux/signUpSlice";
 import axios from "axios";
-import bcrypt from "bcryptjs";
 
 const API_URL = "api/signUp";
 

@@ -13,6 +13,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "@/redux/store";
 import Loader from "@/components/Loader";
 import { toast } from "react-toastify";
+import Cookies from "js-cookie";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -64,17 +65,27 @@ export default function LoginPage() {
   // ✅ **Redirect when userData is available**
   useEffect(() => {
     if (userData?.email) {
-      dispatch(setPermission(userData?.permission));
-      console.log('pppp', userData.permission)
-      localStorage.setItem("LoginUserPermission", JSON.stringify(userData?.permission));
+      // Set a cookie named 'token' with a value 'valid-token'
+      // 'path=/' ensures the cookie is available on all pages
+      document.cookie = "token=valid-token; path=/";
+
+      // Redirect the user to the protected dashboard page
+      router.push("/dashboard");
+      const permissionVal = userData?.permission
+        ? userData?.permission?.toString()
+        : "5";
+      localStorage.setItem("LoginUserPermission", permissionVal);
+      Cookies.set("LoginUserPermission", permissionVal, { expires: 7 });
+      dispatch(setPermission(permissionVal));
       if (rememberMe) {
-        localStorage.setItem("LoginUser", JSON.stringify({ email }));
+        localStorage.setItem("LoginUser", userData?.email);
       } else {
         localStorage.removeItem("LoginUser");
       }
       toast.success("Success!");
-      localStorage.setItem("Username", JSON.stringify(userData?.username));
-      router.replace("/dashboard"); // Redirect to dashboard
+      Cookies.set("UserEmail", userData?.email, { expires: 7 });
+      localStorage.setItem("Username", userData?.username);
+      router.replace("/dashboard");
     }
   }, [userData, rememberMe, router]);
 

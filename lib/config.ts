@@ -6,3 +6,5 @@ export type Task = {
 };
 
 export const TaskListEditable = ["priority", "assignee", "email", "status"];
+
+export const statusColumns = ["Draft", "inProgress", "Pending", "Done"];

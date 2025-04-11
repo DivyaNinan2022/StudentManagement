@@ -3,7 +3,8 @@ import { configureStore } from "@reduxjs/toolkit";
 import tasksReducer from "./taskSlice";
 import addTaskReducer from "./addTaskSlice";
 import navbarReducer from "./navbarSlice";
-import signUpReducer from './signUpSlice'
+import signUpReducer from "./signUpSlice";
+import dashboardReducer from "./dashboardSlice";
 
 export const store = configureStore({
   reducer: {
@@ -11,6 +12,7 @@ export const store = configureStore({
     tasks: tasksReducer,
     addTask: addTaskReducer,
     signUp: signUpReducer,
+    dashboard: dashboardReducer,
   },
 });
 export type RootState = ReturnType<typeof store.getState>;

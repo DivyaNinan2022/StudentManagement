@@ -8,7 +8,6 @@ export async function GET(req: NextRequest) {
     const res = await pool?.query(`SELECT * FROM addtasks WHERE email = $1;`, [
       email,
     ]);
-    console.log("ressss111", res);
     return NextResponse.json(res?.rows, { status: 200 });
   } catch (error) {
     console.error("Error fetching tasks:", error);

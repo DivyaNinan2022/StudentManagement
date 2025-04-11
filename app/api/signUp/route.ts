@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
     // Ensure all required fields are present (optional validation)
     if (!username || !password || !email) {
       return NextResponse.json(
-        { message: "Missing required fields" },
+        { message: "Missing required fields444444444" },
         { status: 400 }
       );
     }

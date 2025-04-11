@@ -10,17 +10,26 @@ import {
   Paper,
   TablePagination,
   Button,
+  Input,
+  debounce,
 } from "@mui/material";
 import {
-  AddTask,
-  addTaskFnSlice,
-  setTasks,
+  addTaskSelector,
+  getEmailForAssigneeFnInSlice,
+  getTaskFnSlice,
+  searchByEmail,
+  sendtEmailsFnInSlice,
   updateTaskFnSlice,
 } from "@/redux/addTaskSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { loginSelector } from "@/redux/signUpSlice";
-import { TaskListEditable } from "@/lib/config";
-import { AppDispatch } from "@/redux/store";
+import { statusColumns, TaskListEditable } from "@/lib/config";
+import { AppDispatch, RootState } from "@/redux/store";
+import axios from "axios";
+import { formatEmailMessage } from "@/lib/utils";
+import { toast } from "react-toastify";
+import { X } from "lucide-react";
+import Loader from "../Loader";
 
 export type AddTaskList = {
   id?: string;
@@ -41,11 +50,33 @@ interface Props {
 
 function TaskTableList({ tasks }: Props) {
   const dispatch = useDispatch<AppDispatch>();
-  const permission = localStorage.getItem("LoginUserPermission");
-  console.log("pppp in component", permission);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(8);
   const [taskList, setTaskList] = useState(tasks);
+  const [searchTerm, setSearchTerm] = useState("");
+  const { loading } = useSelector(addTaskSelector);
+  const { isOpen, loadingNavBar } = useSelector(
+    (state: RootState) => state.navbar
+  );
+  // Access data and loading state from Redux store
+  const { priorities, emails } = useSelector(addTaskSelector);
+  const emailArray = emails?.map((item) => item.email);
+
+  const priorityList =
+    priorities &&
+    priorities?.length > 0 &&
+    priorities?.map((item) => item?.value);
+
+  const user =
+    typeof window !== "undefined" ? localStorage.getItem("Username") : null;
+  const getLocalStorageValue = () => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("LoginUserPermission");
+    }
+    return null;
+  };
+
+  const permission = getLocalStorageValue();
 
   const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
@@ -58,28 +89,31 @@ function TaskTableList({ tasks }: Props) {
     setPage(0);
   };
 
-  if (!tasks || tasks.length === 0) {
-    return <p>No tasks available</p>;
-  }
-
-  const handleEditChange = (taskId: string, field: string, value: string) => {
-    console.log(field, "taskid", taskId, "val", value);
-    const updatedTasks = tasks.map((task) => {
-      console.log("ttttttttt", task);
-      return task.id === taskId ? { ...task, [field]: value } : task;
-    });
-    // NEED TO CHANGE TO SUBMIT BUTTON
-    // // Extract the updated task
-    // const updatedTaskVal = updatedTasks.find((task) => task.id === taskId);
-
-    //   // Dispatch updates
-    //   dispatch(setTasks(updatedTasks));
-    //   if (updatedTaskVal) {
-    //     dispatch(updateTaskFnSlice(updatedTaskVal));
-    //   }
+  const handleEditChange = async (
+    taskId: string,
+    field: string,
+    value: string
+  ) => {
+    if (field === "email") {
+      const res = await dispatch(getEmailForAssigneeFnInSlice(value));
+      const assigneeName = res?.payload[0]?.username;
+      const updatedTasks =
+        taskList?.map((task) => {
+          return task.id === taskId
+            ? { ...task, email: value, assignee: assigneeName }
+            : task;
+        }) || [];
+      setTaskList(updatedTasks);
+    } else {
+      const updatedTasks =
+        taskList?.map((task) => {
+          return task.id === taskId ? { ...task, [field]: value } : task;
+        }) || [];
+      setTaskList(updatedTasks);
+    }
   };
 
-  const handleSubmitBtn = (id: string, isEditVal: boolean) => {
+  const handleSubmitBtn = async (id: string, isEditVal: boolean) => {
     const updatedTasks = tasks.map((task) => {
       return task.id === id ? { ...task, isEdit: !isEditVal } : task;
     });
@@ -88,31 +122,129 @@ function TaskTableList({ tasks }: Props) {
       const updatedTask = taskList.find((task) => task.id === id);
       if (updatedTask) {
         const { isEdit, ...taskWithoutIsEdit } = updatedTask;
-        dispatch(updateTaskFnSlice(taskWithoutIsEdit));
+        await dispatch(updateTaskFnSlice(taskWithoutIsEdit)).then(
+          async (res) => {
+            const data = formatEmailMessage(updatedTask, user || "");
+
+            if (res?.meta?.requestStatus !== "rejected") {
+              window.location.href = `mailto:${updatedTask?.email}
+            ?subject=Action Required: [${updatedTask.tasktitle}]&body=${data}
+            &cc=cc@example.com&bcc=bcc@example.com`;
+              await dispatch(getTaskFnSlice()).then((res: any) => {
+                if (res?.payload && res?.payload?.length > 0) {
+                  setTaskList(res?.payload);
+                }
+              });
+            }
+          }
+        );
       }
     }
   };
 
+  const handleCancel = (id: string) => {
+    const updatedTasks = tasks.map((task) => {
+      return task.id === id ? { ...task, isEdit: true } : task;
+    });
+    setTaskList(updatedTasks);
+  };
+
   const handleStatus = useCallback(
-    (id: string, status: string, field: string) => {
-      console.log("id", id, "status", status);
+    (id: string, value: string, field: string) => {
       return (
         <>
           {permission == "1" ? (
             <input
               className="inputStyleinTable"
               type="text"
-              value={status}
+              value={value}
               onChange={(e) => handleEditChange(id, field, e.target.value)}
             />
           ) : (
-            status
+            value
           )}
         </>
       );
     },
-    [permission, taskList, TaskListEditable]
+    [permission, taskList]
   );
+
+  const handleStatusEdit = useCallback(
+    (id: string, value: string, isEdit: boolean, field: string) => {
+      const fieldVal = () => {
+        if (field === "status") {
+          return statusColumns;
+        } else if (field === "priority") {
+          return priorityList || [];
+        } else if (field === "email") {
+          return emailArray;
+        }
+      };
+      const cols = fieldVal();
+      return (
+        <>
+          {permission == "1" && isEdit === false ? (
+            <select
+              className="inputStyleinTable"
+              value={value}
+              onChange={(e) =>
+                handleEditChange(id || "", field, e.target.value)
+              }
+            >
+              {cols?.map((item, index) => (
+                <option value={item} key={index}>
+                  {item}
+                </option>
+              ))}
+            </select>
+          ) : (
+            value
+          )}
+        </>
+      );
+    },
+    [taskList, tasks]
+  );
+
+  const handleEmailClick = async (msg: any) => {
+    const data = {
+      to: "bibelor814@bankrau.com",
+      subject: "Test Email from Next.js",
+      message: formatEmailMessage(msg, user || ""),
+    };
+    dispatch(sendtEmailsFnInSlice(data)).then((res: any) => {
+      console.log(res, "ressssss");
+    });
+  };
+
+  const handleSearch = async (value: string) => {
+    await dispatch(searchByEmail(value)).then((res: any) => {
+      if (res?.meta?.requestStatus === "fulfilled") {
+        setTaskList(res?.payload);
+      } else {
+        toast.error("oops! something went wrong. Please try again later");
+      }
+    });
+  };
+
+  const debouncedSearch = useCallback(debounce(handleSearch, 300), []);
+
+  const handleClose = async () => {
+    setSearchTerm("");
+    await dispatch(getTaskFnSlice()).then((res: any) => {
+      if (res?.meta?.requestStatus === "fulfilled") {
+        setTaskList(res?.payload);
+      } else {
+        toast.error("oops! something went wrong. Please try again later");
+      }
+    });
+  };
+
+  if (!taskList || taskList.length === 0) {
+    return <p>No tasks available</p>;
+  }
+
+  if (loading || loadingNavBar) return <Loader />;
 
   return (
     <div>
@@ -130,47 +262,94 @@ function TaskTableList({ tasks }: Props) {
                 <TableCell>Assignee</TableCell>
                 <TableCell>Email</TableCell>
                 <TableCell>Status</TableCell>
+                <TableCell colSpan={2}>
+                  <div className="flex items-center border border-gray-300 rounded px-2">
+                    <Input
+                      type="text"
+                      placeholder="Search Email..."
+                      value={searchTerm}
+                      className="flex-1 p-1 bg-transparent border-none outline-none focus:ring-0 focus:border-transparent"
+                      onChange={(e) => {
+                        debouncedSearch(e.target.value);
+                        setSearchTerm(e.target.value);
+                      }}
+                      disableUnderline
+                    />
+                    <X
+                      size={14}
+                      className="cursor-pointer text-gray-500 hover:text-black"
+                      onClick={() => handleClose()}
+                    />
+                  </div>
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {taskList
-                ?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                ?.map((task) => (
-                  <TableRow key={task.id}>
-                    <TableCell>{task.id}</TableCell>
-                    <TableCell>{task.tasktitle}</TableCell>
-                    <TableCell>{task.description}</TableCell>
-                    <TableCell>
-                      {new Date(task.startdate).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>
-                      {new Date(task.enddate).toLocaleDateString()}
-                    </TableCell>
-                    {/* Call handleStatus for each status in taskStatus */}
-                    {TaskListEditable?.map((field: string, index: number) => (
-                      <TableCell key={index}>
-                        {handleStatus(
-                          task?.id || "wwd",
-                          task[field as keyof AddTask] || "Draft",
-                          field
+              {taskList && taskList.length > 0 ? (
+                taskList
+                  ?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  .map((task, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{task.id}</TableCell>
+                      <TableCell>{task.tasktitle}</TableCell>
+                      <TableCell>{task.description}</TableCell>
+                      <TableCell>
+                        {new Date(task.startdate).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        {new Date(task.enddate).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        {handleStatusEdit(
+                          task.id || "",
+                          task.priority,
+                          task.isEdit ?? true,
+                          "priority"
                         )}
                       </TableCell>
-                    ))}
-                    {/* <TableCell>{task.priority}</TableCell>
-                    <TableCell>{task.assignee}</TableCell>
-                    <TableCell>{task.email}</TableCell>
-                    {handleStatus(task?.id || "wwd", task?.status || "Draft")} */}
-                    <TableCell>
-                      <Button
-                        onClick={() =>
-                          handleSubmitBtn(task.id ?? "", task.isEdit ?? true)
-                        }
-                      >
-                        {task.isEdit ? "Edit" : "Submit"}
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                      <TableCell>{task.assignee}</TableCell>
+                      <TableCell>
+                        {handleStatusEdit(
+                          task.id || "",
+                          task.email,
+                          task.isEdit ?? true,
+                          "email"
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {handleStatusEdit(
+                          task.id || "",
+                          task.status || "",
+                          task.isEdit ?? true,
+                          "status"
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          onClick={() =>
+                            handleSubmitBtn(task.id ?? "", task.isEdit ?? true)
+                          }
+                        >
+                          {task.isEdit ? "Edit" : "Submit"}
+                        </Button>
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          onClick={() => handleCancel(task.id || "")}
+                          disabled={task.isEdit}
+                        >
+                          Cancel
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={10} align="center">
+                    No task available
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </TableContainer>
@@ -179,7 +358,7 @@ function TaskTableList({ tasks }: Props) {
         <TablePagination
           rowsPerPageOptions={[5, 10, 25]}
           component="div"
-          count={tasks.length}
+          count={taskList?.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}

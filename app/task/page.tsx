@@ -18,7 +18,7 @@ export default function page() {
   const taskListRef = useRef<HTMLUListElement>(null);
 
   useEffect(() => {
-    dispatch(fetchTasksThunk() as any); // Dispatch fetchTasks when the page loads
+    dispatch(fetchTasksThunk() as any);
   }, []);
 
   const handleAddTask = () => {

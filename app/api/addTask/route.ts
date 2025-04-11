@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
     // Ensure all required fields are present (optional validation)
     if (!tasktitle || !startdate || !enddate || !assignee || !email) {
       return NextResponse.json(
-        { message: "Missing required fields" },
+        { message: "Missing required fields11111111111111" },
         { status: 400 }
       );
     }
@@ -76,13 +76,13 @@ export async function PUT(req: NextRequest) {
       assignee,
       email,
       status,
-      id
-    } = body.data;
+      id,
+    } = body?.data;
 
     // Validate required fields
     if (!id || !tasktitle || !startdate || !enddate || !assignee || !email) {
       return NextResponse.json(
-        { message: "Missing required fields" },
+        { message: "Missing required fields2222222" },
         { status: 400 }
       );
     }
@@ -110,7 +110,7 @@ export async function PUT(req: NextRequest) {
         email,
         status,
         id,
-      ] // Corrected order
+      ]
     );
 
     // Check if any row was updated
