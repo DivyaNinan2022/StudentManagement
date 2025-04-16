@@ -290,7 +290,7 @@ export default function Page() {
           <section className="dashboard-analytics">
             <h2 className="section-title">Task Progress Over Time</h2>
             <div className="chart-container">
-              <ResponsiveContainer width="100%" minWidth={800} height={300}>
+              <ResponsiveContainer width="100%" height={300}>
                 <AreaChart
                   // width={780}
                   height={250}
