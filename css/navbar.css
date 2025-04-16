@@ -59,7 +59,7 @@
     display: block; /* Show hamburger button */
   }
   .navbar {
-    width: 100%;
+    /* width: 100%; */
     background: #222;
     color: white;
     position: fixed;

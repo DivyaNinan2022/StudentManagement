@@ -198,63 +198,63 @@ export default function Page() {
 
     return (
       <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100vh",
+      }}
+    >
+      {/* Top row: Assignee legend */}
+      <div
         style={{
+          maxHeight: "20vh",
+          padding: "8px 12px",
           display: "flex",
-          flexDirection: "column",
-          height: "100vh", // or any container height you need
+          flexWrap: "wrap",
+          alignItems: "center",
+          gap: "10px",
+          justifyContent: "center",
+          overflowY: "auto",
         }}
       >
-        {/* Top row: Assignee legend with min height */}
-        <div
-          style={{
-            maxHeight: "16vh",
-            padding: "2px 6px",
-            display: "flex",
-            flexWrap: "wrap",
-            alignItems: "center",
-            gap: "8px",
-            // borderBottom: "1px solid #ccc",
-            maxWidth: "82vw", // control how many items per row
-            margin: "0 auto", // center it horizontally
-            overflowY: "auto",
-          }}
-        >
-          {Object.entries(assigneeColorMap).map(([name, color]) => (
+        {Object.entries(assigneeColorMap).map(([name, color]) => (
+          <div
+            key={name}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              flex: "1 1 120px", // Grow to fill space but wrap
+              maxWidth: "160px",
+              minWidth: "100px",
+            }}
+          >
             <div
-              key={name}
               style={{
-                display: "flex",
-                alignItems: "center",
-                width: "12vw",
-                minWidth: "8vw", // tweak this to control row breaks
+                width: "12px",
+                height: "12px",
+                backgroundColor: color,
+                borderRadius: "50%",
+                marginRight: "6px",
               }}
-            >
-              <div
-                style={{
-                  width: "12px",
-                  height: "12px",
-                  backgroundColor: color,
-                  borderRadius: "50%",
-                  marginRight: "6px",
-                }}
-              ></div>
-              <span style={{ fontSize: "0.9rem" }}>{name}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* Bottom row: Draggable components */}
-        <div style={{ flex: 1, overflow: "auto", padding: "12px" }}>
-          <DraggableComponents
-            taskValues={modifiedData ?? {}}
-            setTaskValues={setModifiedData}
-            draftValues={draftValues}
-            progressValues={progressValues}
-            pendingValues={pendingValues}
-            completedValues={completedValues}
-          />
-        </div>
+            />
+            <span style={{ fontSize: "0.9rem", whiteSpace: "nowrap" }}>{name}</span>
+          </div>
+        ))}
       </div>
+    
+      {/* Bottom row: Draggable components */}
+      <div style={{ flex: 1, overflow: "auto", padding: "12px" }}>
+        <DraggableComponents
+          taskValues={modifiedData ?? {}}
+          setTaskValues={setModifiedData}
+          draftValues={draftValues}
+          progressValues={progressValues}
+          pendingValues={pendingValues}
+          completedValues={completedValues}
+        />
+      </div>
+    </div>
+    
     );
   }, [modifiedData, draftValues, progressValues, pendingValues]);
   console.log(loading, "loaderrrr", loadingNavBar);
