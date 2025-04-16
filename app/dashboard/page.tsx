@@ -195,7 +195,7 @@ export default function Page() {
     assignees.forEach((assg) => {
       assigneeColorMap[assg] = getColorFromName(assg);
     });
-    console.log("assss", assigneeColorMap);
+
     return (
       <div
         style={{
@@ -257,6 +257,7 @@ export default function Page() {
       </div>
     );
   }, [modifiedData, draftValues, progressValues, pendingValues]);
+  console.log(loading, "loaderrrr", loadingNavBar);
 
   return (
     <div className="dashboard">

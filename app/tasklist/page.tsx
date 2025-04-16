@@ -7,59 +7,52 @@ import {
   getEmailsFnInSlice,
   getPrioritiesFnInSlice,
   getTaskFnSlice,
+  getTaskForOtherUsersSlice,
 } from "@/redux/addTaskSlice";
 import { AppDispatch, RootState } from "@/redux/store";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Loader from "@/components/Loader";
 import { setLoadingNavBar } from "@/redux/navbarSlice";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
+import Cookies from "js-cookie";
 
-const fetchTasks = async () => {
-  const { data } = await axios.get("/api/addTask");
-  return data;
-};
-
-export default function page() {
+export default function Page() {
   const dispatch = useDispatch<AppDispatch>();
- const {tasks} = useSelector(addTaskSelector)
-  const { isOpen, loadingNavBar } = useSelector((state: RootState) => state.navbar);
+  const { tasks, loading } = useSelector(addTaskSelector);
+  const { isOpen, loadingNavBar } = useSelector(
+    (state: RootState) => state.navbar
+  );
 
-  const { data, error, isLoading } = useQuery({
-    queryKey: ["tasks"],
-    queryFn: fetchTasks,
-  });
-  const [updateTasks, setupdatedTask] = useState(tasks);
+  const permission = Cookies.get("LoginUserPermission") || "";
+  const username = Cookies.get("UserEmail") || "";
+
   useEffect(() => {
     const fetchData = async () => {
-      await dispatch(setLoadingNavBar(false));
-      await dispatch(getTaskFnSlice());
+      dispatch(setLoadingNavBar(false));
+      if (permission === "1") {
+        await dispatch(getTaskFnSlice());
+      } else {
+        await dispatch(getTaskForOtherUsersSlice(username));
+      }
+      dispatch(getPrioritiesFnInSlice());
+      dispatch(getEmailsFnInSlice());
     };
     fetchData();
-    dispatch(getPrioritiesFnInSlice());
-    dispatch(getEmailsFnInSlice());
   }, []);
 
-  useEffect(() => {
-
-
-  },[tasks]);
-
-
-  // Add `isEdit: false` to each task
-  const updatedTasks = data?.map((task: AddTask[]) => ({
+  const updatedTasks = tasks.map((task) => ({
     ...task,
     isEdit: true,
   }));
 
-  // if (isLoading) return <p>Loading...</p>;
-  if (error) return <p>Error: {error.message}</p>;
+  if (loadingNavBar || loading) {
+    return <Loader />;
+  }
 
   return (
     <div className={isOpen ? "mainContainer" : "mainContainerClosed"}>
       <h1 className="text-2xl font-bold mb-4 text-center">Task List</h1>
-      {isLoading || loadingNavBar ? <Loader /> : <TaskTableList tasks={updatedTasks} />}
+      <TaskTableList tasks={updatedTasks} />
     </div>
   );
 }

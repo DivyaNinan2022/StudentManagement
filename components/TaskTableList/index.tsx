@@ -48,11 +48,16 @@ interface Props {
   tasks: AddTaskList[];
 }
 
+export type AddTaskWithEdit = AddTaskList & { isEdit: boolean };
 function TaskTableList({ tasks }: Props) {
   const dispatch = useDispatch<AppDispatch>();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(8);
-  const [taskList, setTaskList] = useState(tasks);
+  const tasksVal: AddTaskWithEdit[] = tasks.map((task) => ({
+    ...task,
+    isEdit: true,
+  }));
+  const [taskList, setTaskList] = useState<AddTaskWithEdit[]>(tasksVal);
   const [searchTerm, setSearchTerm] = useState("");
   const { loading } = useSelector(addTaskSelector);
   const { isOpen, loadingNavBar } = useSelector(
@@ -77,7 +82,7 @@ function TaskTableList({ tasks }: Props) {
   };
 
   const permission = getLocalStorageValue();
-
+  console.log("permission", permission);
   const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
   };
@@ -114,9 +119,9 @@ function TaskTableList({ tasks }: Props) {
   };
 
   const handleSubmitBtn = async (id: string, isEditVal: boolean) => {
-    const updatedTasks = tasks.map((task) => {
-      return task.id === id ? { ...task, isEdit: !isEditVal } : task;
-    });
+    const updatedTasks: AddTaskWithEdit[] = taskList.map((task) =>
+      task.id === id ? { ...task, isEdit: !isEditVal } : task
+    );
     setTaskList(updatedTasks);
     if (isEditVal === false) {
       const updatedTask = taskList.find((task) => task.id === id);
@@ -131,8 +136,12 @@ function TaskTableList({ tasks }: Props) {
             ?subject=Action Required: [${updatedTask.tasktitle}]&body=${data}
             &cc=cc@example.com&bcc=bcc@example.com`;
               await dispatch(getTaskFnSlice()).then((res: any) => {
-                if (res?.payload && res?.payload?.length > 0) {
-                  setTaskList(res?.payload);
+                if (res?.payload && res.payload.length > 0) {
+                  const updatedPayload = res.payload.map((task: any) => ({
+                    ...task,
+                    isEdit: true,
+                  }));
+                  setTaskList(updatedPayload);
                 }
               });
             }
@@ -143,7 +152,7 @@ function TaskTableList({ tasks }: Props) {
   };
 
   const handleCancel = (id: string) => {
-    const updatedTasks = tasks.map((task) => {
+    const updatedTasks = taskList?.map((task) => {
       return task.id === id ? { ...task, isEdit: true } : task;
     });
     setTaskList(updatedTasks);
@@ -246,6 +255,8 @@ function TaskTableList({ tasks }: Props) {
 
   if (loading || loadingNavBar) return <Loader />;
 
+  console.log(tasks, "tttttttttttt in child", taskList);
+
   return (
     <div>
       <Paper sx={{ width: "100%", overflow: "hidden" }}>
@@ -263,12 +274,12 @@ function TaskTableList({ tasks }: Props) {
                 <TableCell>Email</TableCell>
                 <TableCell>Status</TableCell>
                 <TableCell colSpan={2}>
-                  <div className="flex items-center border border-gray-300 rounded px-2">
+                  <div className="flex items-center border border-gray-300 rounded-md px-3 py-1.5 bg-white shadow-sm gap-2 w-full max-w-md">
                     <Input
                       type="text"
                       placeholder="Search Email..."
                       value={searchTerm}
-                      className="flex-1 p-1 bg-transparent border-none outline-none focus:ring-0 focus:border-transparent"
+                      className="flex-1 text-sm bg-transparent border-none outline-none focus:ring-0 placeholder-gray-400"
                       onChange={(e) => {
                         debouncedSearch(e.target.value);
                         setSearchTerm(e.target.value);
@@ -276,10 +287,16 @@ function TaskTableList({ tasks }: Props) {
                       disableUnderline
                     />
                     <X
-                      size={14}
-                      className="cursor-pointer text-gray-500 hover:text-black"
-                      onClick={() => handleClose()}
+                      size={16}
+                      className="cursor-pointer text-gray-400 hover:text-gray-600 transition-colors"
+                      onClick={handleClose}
                     />
+                    <button
+                      onClick={() => handleSearch(searchTerm)}
+                      className="text-sm px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-all"
+                    >
+                      Search
+                    </button>
                   </div>
                 </TableCell>
               </TableRow>
