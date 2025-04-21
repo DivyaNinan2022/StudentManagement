@@ -48,6 +48,10 @@ export default function Page() {
   if (loadingNavBar || loading) {
     return <Loader />;
   }
+  console.log("11111", updatedTasks);
+  if (!tasks.length) {
+    return <p className="text-center mt-4">No tasks found.</p>;
+  }
 
   return (
     <div className={isOpen ? "mainContainer" : "mainContainerClosed"}>

@@ -20,8 +20,8 @@
   position: fixed;
   left: 0;
   top: 0;
-  display: flex;
-  flex-direction: row;
+  /* display: flex;
+  flex-direction: row-reverse; */
   align-items: center;
   padding: 10px 20px;
   z-index: 10;
@@ -30,6 +30,10 @@
   list-style: none;
   padding: 0;
   margin: 0;
+  text-align: right;
+}
+.navbar-closed ul {
+  text-align: right;
 }
 
 .navbar li {
@@ -56,8 +60,14 @@
 /* * Mobile Styles */
 @media (max-width: 768px) {
   .menu-toggle {
-    display: block; /* Show hamburger button */
+    position: absolute;
+    top: 1rem;
+    left: 5rem;
+    background: none;
+    border: none;
+    z-index: 100;
   }
+
   .navbar {
     /* width: 100%; */
     background: #222;

@@ -56,13 +56,11 @@ const NavBar = () => {
           </li>
         </ul>
       ) : (
-        <ul>
-          <li>
-            <Link href="/login" prefetch={true} onClick={handleLogOut}>
-              Log Out
-            </Link>
-          </li>
-        </ul>
+        <span style={{ float: "right" }}>
+          <Link href="/login" prefetch={true} onClick={handleLogOut}>
+            Log Out
+          </Link>
+        </span>
       )}
     </nav>
   );
