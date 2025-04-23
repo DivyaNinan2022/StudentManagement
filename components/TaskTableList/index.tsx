@@ -17,6 +17,7 @@ import {
   addTaskSelector,
   getEmailForAssigneeFnInSlice,
   getTaskFnSlice,
+  getTaskForOtherUsersSlice,
   searchByEmail,
   sendtEmailsFnInSlice,
   updateTaskFnSlice,
@@ -29,6 +30,7 @@ import axios from "axios";
 import { formatEmailMessage } from "@/lib/utils";
 import { toast } from "react-toastify";
 import { X } from "lucide-react";
+import Cookies from "js-cookie";
 import Loader from "../Loader";
 
 export type AddTaskList = {
@@ -135,15 +137,20 @@ function TaskTableList({ tasks }: Props) {
               window.location.href = `mailto:${updatedTask?.email}
             ?subject=Action Required: [${updatedTask.tasktitle}]&body=${data}
             &cc=cc@example.com&bcc=bcc@example.com`;
-              await dispatch(getTaskFnSlice()).then((res: any) => {
-                if (res?.payload && res.payload.length > 0) {
-                  const updatedPayload = res.payload.map((task: any) => ({
-                    ...task,
-                    isEdit: true,
-                  }));
-                  setTaskList(updatedPayload);
-                }
-              });
+              const username = Cookies.get("UserEmail") || "";
+              let res1;
+              if (permission === "1") {
+                res1 = await dispatch(getTaskFnSlice());
+              } else {
+                res1 = await dispatch(getTaskForOtherUsersSlice(username));
+              }
+              if (res1?.payload && res.payload.length > 0) {
+                const updatedPayload = res.payload.map((task: any) => ({
+                  ...task,
+                  isEdit: true,
+                }));
+                setTaskList(updatedPayload);
+              }
             }
           }
         );
@@ -192,7 +199,7 @@ function TaskTableList({ tasks }: Props) {
       const cols = fieldVal();
       return (
         <>
-          {permission == "1" && isEdit === false ? (
+          {isEdit === false ? (
             <select
               className="inputStyleinTable"
               value={value}
@@ -255,8 +262,6 @@ function TaskTableList({ tasks }: Props) {
 
   if (loading || loadingNavBar) return <Loader />;
 
-  console.log(tasks, "tttttttttttt in child", taskList);
-
   return (
     <div>
       <Paper sx={{ width: "100%", overflow: "hidden" }}>
@@ -273,32 +278,34 @@ function TaskTableList({ tasks }: Props) {
                 <TableCell>Assignee</TableCell>
                 <TableCell>Email</TableCell>
                 <TableCell>Status</TableCell>
-                <TableCell colSpan={2}>
-                  <div className="flex items-center border border-gray-300 rounded-md px-3 py-1.5 bg-white shadow-sm gap-2 w-full max-w-md">
-                    <Input
-                      type="text"
-                      placeholder="Search Email..."
-                      value={searchTerm}
-                      className="flex-1 text-sm bg-transparent border-none outline-none focus:ring-0 placeholder-gray-400"
-                      onChange={(e) => {
-                        debouncedSearch(e.target.value);
-                        setSearchTerm(e.target.value);
-                      }}
-                      disableUnderline
-                    />
-                    <X
-                      size={16}
-                      className="cursor-pointer text-gray-400 hover:text-gray-600 transition-colors"
-                      onClick={handleClose}
-                    />
-                    <button
-                      onClick={() => handleSearch(searchTerm)}
-                      className="text-sm px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-all"
-                    >
-                      Search
-                    </button>
-                  </div>
-                </TableCell>
+                {permission === "1" ? (
+                  <TableCell colSpan={2}>
+                    <div className="flex items-center border border-gray-300 rounded-md px-3 py-1.5 bg-white shadow-sm gap-2 w-full max-w-md">
+                      <Input
+                        type="text"
+                        placeholder="Search Email..."
+                        value={searchTerm}
+                        className="flex-1 text-sm bg-transparent border-none outline-none focus:ring-0 placeholder-gray-400"
+                        onChange={(e) => {
+                          // debouncedSearch(e.target.value);
+                          setSearchTerm(e.target.value);
+                        }}
+                        disableUnderline
+                      />
+                      <X
+                        size={16}
+                        className="cursor-pointer text-gray-400 hover:text-gray-600 transition-colors"
+                        onClick={handleClose}
+                      />
+                      <button
+                        onClick={() => handleSearch(searchTerm)}
+                        className="text-sm px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-all"
+                      >
+                        Search
+                      </button>
+                    </div>
+                  </TableCell>
+                ) : null}
               </TableRow>
             </TableHead>
             <TableBody>
