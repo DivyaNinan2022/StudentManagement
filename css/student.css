@@ -1,0 +1,186 @@
+.student-container {
+  max-width: 900px;
+  margin: 0px;
+  font-family: 'Segoe UI', sans-serif;
+}
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 25px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.filter-dropdown {
+  padding: 8px 12px;
+  font-size: 14px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background-color: #f9f9f9;
+  min-width: 140px;
+  outline: none;
+  transition: border 0.2s;
+}
+
+.filter-dropdown:focus {
+  border-color: #3498db;
+}
+
+button.primary,
+button.secondary {
+  padding: 8px 14px;
+  font-size: 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  border: none;
+}
+
+button.primary {
+  background-color: #3498db;
+  color: #fff;
+}
+
+button.primary:hover {
+  background-color: #2980b9;
+}
+
+button.secondary {
+  background-color: #ecf0f1;
+  color: #2c3e50;
+  border: 1px solid #bdc3c7;
+}
+
+button.secondary:hover {
+  background-color: #d0d7de;
+}
+
+.close-button {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background-color: transparent;
+  border: none;
+  font-size: 24px;
+  color: #6b7280; /* Gray */
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.close-button:hover {
+  color: #ef4444; /* Red on hover */
+}
+
+
+.filters button.secondary:hover {
+  background-color: #e2e8f0;
+}
+.student-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.06);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.student-table th,
+.student-table td {
+  padding: 12px 14px;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.student-table th {
+  background-color: #f1f5f9;
+  font-weight: 600;
+  color: #475569;
+}
+
+.student-table tbody tr:hover {
+  background-color: #f8fafc;
+}
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.action-buttons button {
+  padding: 6px 10px;
+  font-size: 13px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.action-buttons .edit {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.action-buttons .payment {
+  background-color: #22c55e;
+  color: white;
+}
+
+.action-buttons .batch {
+  background-color: #f59e0b;
+  color: white;
+}
+
+.action-buttons button:hover {
+  opacity: 0.9;
+}
+.footer-summary {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 4px;
+  font-size: 15px;
+  margin-top: 10px;
+}
+
+.footer-summary strong {
+  color: #1f2937;
+}
+.student-form {
+  position: relative;
+  max-width: 800px;
+  margin: 0 auto;
+  background-color: white;
+  padding: 24px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.student-form h2 {
+  font-size: 22px;
+  margin-bottom: 20px;
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-grid input,
+.form-grid select {
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 14px;
+}
+.student-form button.submit-btn {
+  margin-top: 20px;
+  padding: 10px 20px;
+  font-size: 15px;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.student-form button.submit-btn:hover {
+  background-color: #1e3a8a;
+}

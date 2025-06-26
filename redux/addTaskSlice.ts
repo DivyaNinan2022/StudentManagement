@@ -37,9 +37,14 @@ export interface AddTask {
   status?: string;
 }
 
-export interface dragData{
-  id:string;
-  status:string;
+export interface AddTaskWithCount {
+  data: AddTask[];
+  totalCount: number;
+}
+
+export interface dragData {
+  id: string;
+  status: string;
 }
 
 export type EmailType = {
@@ -58,7 +63,13 @@ const initialTaskForAddTask: AddTask = {
   status: "Draft",
 };
 
+const initailTaskForAddTaskWithCount: AddTaskWithCount = {
+  data: [initialTaskForAddTask],
+  totalCount: 8,
+};
 export interface AddTasksState {
+  tasksWithCount?:AddTaskWithCount;
+  allTaskWithUser?:AddTask[];
   priorities?: PriorityType[];
   updatedTask: AddTask;
   emails?: EmailType[];
@@ -88,8 +99,8 @@ const initialState: AddTasksState = {
 
 export const fetchTaskFnSlice = createAsyncThunk(
   "addTasks/fetchTasks",
-  async () => {
-    return await fetchTasks();
+  async (pageNo: string) => {
+    return await fetchTasks(pageNo);
   }
 );
 
@@ -124,8 +135,8 @@ export const updateTaskFnSlice = createAsyncThunk(
 //Get all tasks
 export const getTaskFnSlice = createAsyncThunk(
   "addTasks/fetchTasks",
-  async () => {
-    const response = await fetchTasks();
+  async (pageNo: string) => {
+    const response = await fetchTasks(pageNo);
     return response;
   }
 );
@@ -207,14 +218,14 @@ const addTasksSlice = createSlice({
     builder
       .addCase(getTaskFnSlice.fulfilled, (state, action) => {
         state.loading = false;
-        state.tasks = action.payload;
+        state.tasksWithCount = action.payload;
       })
       .addCase(getTaskForOtherUsersSlice.pending, (state) => {
         state.loading = true;
       })
       .addCase(getTaskForOtherUsersSlice.fulfilled, (state, action) => {
         state.loading = false;
-        state.tasks = action.payload;
+        state.allTaskWithUser = action.payload;
       })
       .addCase(getTaskForOtherUsersSlice.rejected, (state, action) => {
         state.loading = false;
@@ -244,16 +255,16 @@ const addTasksSlice = createSlice({
       //   state.error = action.error.message || "Failed to load tasks";
       // })
       .addCase(addTaskFnSlice.fulfilled, (state, action) => {
-        state.tasks.unshift(action.payload); // Add new task to the top
+        state.tasksWithCount?.data?.unshift(action.payload); // Add new task to the top
       })
-      .addCase(toggleTaskThunk.fulfilled, (state, action) => {
-        const index = state.tasks.findIndex(
-          (task) => task.id === action.payload.id
-        );
-        if (index !== -1) {
-          state.tasks[index].status = action.payload.status;
-        }
-      })
+      // .addCase(toggleTaskThunk.fulfilled, (state, action) => {
+      //   const index = state.tasks.findIndex(
+      //     (task) => task.id === action.payload.id
+      //   );
+      //   if (index !== -1) {
+      //     state.tasks[index].status = action.payload.status;
+      //   }
+      // })
       .addCase(getPrioritiesFnInSlice.fulfilled, (state, action) => {
         state.priorities = action.payload; // Store the response in state
       })

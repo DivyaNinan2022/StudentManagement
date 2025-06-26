@@ -3,8 +3,8 @@ import axios from "axios";
 
 const API_URL = process.env.API_URL || "api/addTask"; // Example API
 
-export const fetchTasks = async () => {
-  const response = await axios.get(API_URL);
+export const fetchTasks = async (pageno: string) => {
+  const response = await axios.get(`${API_URL}?page=${pageno}`);
   return response.data;
 };
 

@@ -22,7 +22,7 @@ function Page() {
 
   return (
     <div>
-      <h1>Task List</h1>
+      <h1>Student List</h1>
       {error && <p style={{ color: "red" }}>{error}</p>}
       <ul>
         {Array.isArray(tasks) ? (

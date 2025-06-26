@@ -1,0 +1,126 @@
+/* Root styling */
+/* Ensure nav container fills the full height */
+nav.navbar {
+  width: 200px;
+  height: 100vh;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding-top: 20px;
+  padding-left: 15px;
+  background-color: #1f2937;
+}
+
+/* Make nav links stack vertically */
+.nav-links {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 40px;
+  width: 70%;
+  padding: 0;
+}
+
+.nav-links li {
+  width: 100%;
+}
+
+.nav-links li a {
+  display: block;
+  width: 100%;
+  padding: 10px 15px;
+  text-align: left;
+  font-size: 16px;
+  color: #f1f5f9;
+  border-radius: 4px;
+}
+
+.nav-links li a:hover {
+  background-color: #3b82f6;
+  color: white;
+}
+
+/* Menu toggle (hamburger / close icon) */
+.menu-toggle {
+  background: transparent;
+  border: none;
+  color: #f9fafb;
+  cursor: pointer;
+  margin-right: 20px;
+}
+
+.menu-toggle:hover {
+  color: #3b82f6;
+}
+
+/* Navigation links */
+.nav-links {
+  display: flex;
+  list-style: none;
+  gap: 30px;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-links li {
+  position: relative;
+}
+
+.nav-links li a {
+  color: #f1f5f9;
+  text-decoration: none;
+  font-size: 15px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  transition: background 0.3s, color 0.3s;
+}
+
+.nav-links li a:hover {
+  background-color: #3b82f6;
+  color: white;
+}
+
+/* Right section (username + logout) */
+nav span {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+}
+
+nav label {
+  font-weight: 500;
+  color: #e2e8f0;
+}
+
+/* Log out button */
+nav button.logout-button {
+  padding: 6px 14px;
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+nav button.logout-button:hover {
+  background-color: #dc2626;
+}
+
+/* Responsive tweaks */
+@media (max-width: 768px) {
+  .nav-links {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding-top: 10px;
+  }
+
+  nav span {
+    flex-direction: column;
+    align-items: flex-end;
+    margin-top: 10px;
+  }
+}

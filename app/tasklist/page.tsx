@@ -18,7 +18,7 @@ import Cookies from "js-cookie";
 
 export default function Page() {
   const dispatch = useDispatch<AppDispatch>();
-  const { tasks, loading } = useSelector(addTaskSelector);
+  const { tasks, tasksWithCount, loading } = useSelector(addTaskSelector);
   const { isOpen, loadingNavBar } = useSelector(
     (state: RootState) => state.navbar
   );
@@ -30,7 +30,7 @@ export default function Page() {
     const fetchData = async () => {
       dispatch(setLoadingNavBar(false));
       if (permission === "1") {
-        await dispatch(getTaskFnSlice());
+        await dispatch(getTaskFnSlice("1"));
       } else {
         await dispatch(getTaskForOtherUsersSlice(username));
       }
@@ -40,7 +40,7 @@ export default function Page() {
     fetchData();
   }, []);
 
-  const updatedTasks = tasks.map((task) => ({
+  const updatedTasks = tasksWithCount?.data?.map((task) => ({
     ...task,
     isEdit: true,
   }));
@@ -48,15 +48,15 @@ export default function Page() {
   if (loadingNavBar || loading) {
     return <Loader />;
   }
-  console.log("11111", updatedTasks);
-  if (!tasks.length) {
+  console.log(tasksWithCount, "11111", updatedTasks);
+  if (!tasksWithCount?.data?.length) {
     return <p className="text-center mt-4">No tasks found.</p>;
   }
 
   return (
-    <div className={isOpen ? "mainContainer" : "mainContainerClosed"}>
-      <h1 className="text-2xl font-bold mb-4 text-center">Task List</h1>
-      <TaskTableList tasks={updatedTasks} />
+    <div>
+      <h1 className="text-2xl font-bold mb-4 text-center">Students List</h1>
+      <TaskTableList tasks={updatedTasks || []} />
     </div>
   );
 }

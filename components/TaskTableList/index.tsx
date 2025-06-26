@@ -1,5 +1,5 @@
 "use client";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Table,
   TableBody,
@@ -11,6 +11,7 @@ import {
   TablePagination,
   Button,
   Input,
+  Box,
   debounce,
 } from "@mui/material";
 import {
@@ -23,10 +24,8 @@ import {
   updateTaskFnSlice,
 } from "@/redux/addTaskSlice";
 import { useDispatch, useSelector } from "react-redux";
-import { loginSelector } from "@/redux/signUpSlice";
 import { statusColumns, TaskListEditable } from "@/lib/config";
 import { AppDispatch, RootState } from "@/redux/store";
-import axios from "axios";
 import { formatEmailMessage } from "@/lib/utils";
 import { toast } from "react-toastify";
 import { X } from "lucide-react";
@@ -53,21 +52,29 @@ interface Props {
 export type AddTaskWithEdit = AddTaskList & { isEdit: boolean };
 function TaskTableList({ tasks }: Props) {
   const dispatch = useDispatch<AppDispatch>();
+  // Access data and loading state from Redux store
+  const { priorities, emails, loading, tasksWithCount } =
+    useSelector(addTaskSelector);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(8);
-  const tasksVal: AddTaskWithEdit[] = tasks.map((task) => ({
+  const updatedTasks =
+    tasksWithCount?.data?.map((task) => ({
+      ...task,
+      isEdit: true,
+    })) || [];
+
+  const tasksVal: AddTaskWithEdit[] = updatedTasks?.map((task) => ({
     ...task,
     isEdit: true,
   }));
+  console.log("11tasksWithCount?.data", tasksVal);
   const [taskList, setTaskList] = useState<AddTaskWithEdit[]>(tasksVal);
   const [searchTerm, setSearchTerm] = useState("");
-  const { loading } = useSelector(addTaskSelector);
   const { isOpen, loadingNavBar } = useSelector(
     (state: RootState) => state.navbar
   );
-  // Access data and loading state from Redux store
-  const { priorities, emails } = useSelector(addTaskSelector);
-  const emailArray = emails?.map((item) => item.email);
+
+  const emailArray = emails?.map((item) => item?.email);
 
   const priorityList =
     priorities &&
@@ -84,10 +91,29 @@ function TaskTableList({ tasks }: Props) {
   };
 
   const permission = getLocalStorageValue();
-  console.log("permission", permission);
-  const handleChangePage = (_event: unknown, newPage: number) => {
+
+  const handleChangePage = async (_event: unknown, newPage: number) => {
+    const p = newPage + 1;
+    await dispatch(getTaskFnSlice(p?.toString())).then((res) => {
+      console.log(res, "ressss");
+      if (res?.payload && res?.payload?.data) {
+        const updatedTasksWithEdit = res.payload.data.map((task: any) => ({
+          ...task,
+          isEdit: true,
+        }));
+        console.log("Updated Tasks with isEdit:", updatedTasksWithEdit);
+        setTaskList(updatedTasksWithEdit);
+      } else {
+        toast.error("oops! something went wrong. Please try again later");
+      }
+    });
     setPage(newPage);
   };
+
+  // after your useState
+useEffect(() => {
+  console.log("taskList changed: ", taskList);
+}, [taskList]);
 
   const handleChangeRowsPerPage = (
     event: React.ChangeEvent<HTMLInputElement>
@@ -140,7 +166,8 @@ function TaskTableList({ tasks }: Props) {
               const username = Cookies.get("UserEmail") || "";
               let res1;
               if (permission === "1") {
-                res1 = await dispatch(getTaskFnSlice());
+                const p = page?.toString();
+                res1 = await dispatch(getTaskFnSlice(p));
               } else {
                 res1 = await dispatch(getTaskForOtherUsersSlice(username));
               }
@@ -219,7 +246,7 @@ function TaskTableList({ tasks }: Props) {
         </>
       );
     },
-    [taskList, tasks]
+    [taskList]
   );
 
   const handleEmailClick = async (msg: any) => {
@@ -243,11 +270,13 @@ function TaskTableList({ tasks }: Props) {
     });
   };
 
-  const debouncedSearch = useCallback(debounce(handleSearch, 300), []);
+  // const debouncedSearch = useCallback(debounce(handleSearch, 300), []);
 
   const handleClose = async () => {
     setSearchTerm("");
-    await dispatch(getTaskFnSlice()).then((res: any) => {
+    const p = page?.toString();
+    console.log("pppp", page);
+    await dispatch(getTaskFnSlice(p)).then((res: any) => {
       if (res?.meta?.requestStatus === "fulfilled") {
         setTaskList(res?.payload);
       } else {
@@ -265,124 +294,127 @@ function TaskTableList({ tasks }: Props) {
   return (
     <div>
       <Paper sx={{ width: "100%", overflow: "hidden" }}>
-        <TableContainer>
-          <Table stickyHeader aria-label="task table">
-            <TableHead>
-              <TableRow>
-                <TableCell>ID</TableCell>
-                <TableCell>Task Title</TableCell>
-                <TableCell>Description</TableCell>
-                <TableCell>Start Date</TableCell>
-                <TableCell>End Date</TableCell>
-                <TableCell>Priority</TableCell>
-                <TableCell>Assignee</TableCell>
-                <TableCell>Email</TableCell>
-                <TableCell>Status</TableCell>
-                {permission === "1" ? (
-                  <TableCell colSpan={2}>
-                    <div className="flex items-center border border-gray-300 rounded-md px-3 py-1.5 bg-white shadow-sm gap-2 w-full max-w-md">
-                      <Input
-                        type="text"
-                        placeholder="Search Email..."
-                        value={searchTerm}
-                        className="flex-1 text-sm bg-transparent border-none outline-none focus:ring-0 placeholder-gray-400"
-                        onChange={(e) => {
-                          // debouncedSearch(e.target.value);
-                          setSearchTerm(e.target.value);
-                        }}
-                        disableUnderline
-                      />
-                      <X
-                        size={16}
-                        className="cursor-pointer text-gray-400 hover:text-gray-600 transition-colors"
-                        onClick={handleClose}
-                      />
-                      <button
-                        onClick={() => handleSearch(searchTerm)}
-                        className="text-sm px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-all"
-                      >
-                        Search
-                      </button>
-                    </div>
-                  </TableCell>
-                ) : null}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {taskList && taskList.length > 0 ? (
-                taskList
-                  ?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((task, index) => (
-                    <TableRow key={index}>
-                      <TableCell>{task.id}</TableCell>
-                      <TableCell>{task.tasktitle}</TableCell>
-                      <TableCell>{task.description}</TableCell>
-                      <TableCell>
-                        {new Date(task.startdate).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell>
-                        {new Date(task.enddate).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell>
-                        {handleStatusEdit(
-                          task.id || "",
-                          task.priority,
-                          task.isEdit ?? true,
-                          "priority"
-                        )}
-                      </TableCell>
-                      <TableCell>{task.assignee}</TableCell>
-                      <TableCell>
-                        {handleStatusEdit(
-                          task.id || "",
-                          task.email,
-                          task.isEdit ?? true,
-                          "email"
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {handleStatusEdit(
-                          task.id || "",
-                          task.status || "",
-                          task.isEdit ?? true,
-                          "status"
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          onClick={() =>
-                            handleSubmitBtn(task.id ?? "", task.isEdit ?? true)
-                          }
-                        >
-                          {task.isEdit ? "Edit" : "Submit"}
-                        </Button>
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          onClick={() => handleCancel(task.id || "")}
-                          disabled={task.isEdit}
-                        >
-                          Cancel
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-              ) : (
+        <Box sx={{ overflowX: "auto" }}>
+          <TableContainer>
+            <Table stickyHeader aria-label="task table">
+              <TableHead>
                 <TableRow>
-                  <TableCell colSpan={10} align="center">
-                    No task available
-                  </TableCell>
+                  <TableCell>ID</TableCell>
+                  <TableCell>Task Title</TableCell>
+                  <TableCell>Description</TableCell>
+                  <TableCell>Start Date</TableCell>
+                  <TableCell>End Date</TableCell>
+                  <TableCell>Priority</TableCell>
+                  <TableCell>Assignee</TableCell>
+                  <TableCell>Email</TableCell>
+                  <TableCell>Status</TableCell>
+                  {permission === "1" ? (
+                    <TableCell colSpan={2}>
+                      <div className="flex items-center border border-gray-300 rounded-md px-3 py-1.5 bg-white shadow-sm gap-2 w-full max-w-md">
+                        <Input
+                          type="text"
+                          placeholder="Search Email..."
+                          value={searchTerm}
+                          className="flex-1 text-sm bg-transparent border-none outline-none focus:ring-0 placeholder-gray-400"
+                          onChange={(e) => {
+                            // debouncedSearch(e.target.value);
+                            setSearchTerm(e.target.value);
+                          }}
+                          disableUnderline
+                        />
+                        <X
+                          size={16}
+                          className="cursor-pointer text-gray-400 hover:text-gray-600 transition-colors"
+                          onClick={handleClose}
+                        />
+                        <button
+                          onClick={() => handleSearch(searchTerm)}
+                          className="text-sm px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-all"
+                        >
+                          Search
+                        </button>
+                      </div>
+                    </TableCell>
+                  ) : null}
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-
+              </TableHead>
+              <TableBody>
+                {taskList && taskList.length > 0 ? (
+                  taskList
+                    ?.map((task, index) => (
+                      <TableRow key={index}>
+                        <TableCell>{task.id}</TableCell>
+                        <TableCell>{task.tasktitle}</TableCell>
+                        <TableCell>{task.description}</TableCell>
+                        <TableCell>
+                          {new Date(task.startdate).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          {new Date(task.enddate).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          {handleStatusEdit(
+                            task.id || "",
+                            task.priority,
+                            task.isEdit ?? true,
+                            "priority"
+                          )}
+                        </TableCell>
+                        <TableCell>{task.assignee}</TableCell>
+                        <TableCell>
+                          {handleStatusEdit(
+                            task.id || "",
+                            task.email,
+                            task.isEdit ?? true,
+                            "email"
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {handleStatusEdit(
+                            task.id || "",
+                            task.status || "",
+                            task.isEdit ?? true,
+                            "status"
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            onClick={() =>
+                              handleSubmitBtn(
+                                task.id ?? "",
+                                task.isEdit ?? true
+                              )
+                            }
+                          >
+                            {task.isEdit ? "Edit" : "Submit"}
+                          </Button>
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            onClick={() => handleCancel(task.id || "")}
+                            disabled={task.isEdit}
+                          >
+                            Cancel
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={10} align="center">
+                      No task available
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
         {/* Pagination */}
         <TablePagination
           rowsPerPageOptions={[5, 10, 25]}
           component="div"
-          count={taskList?.length}
+          count={tasksWithCount?.totalCount || 8}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}

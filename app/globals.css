@@ -2,20 +2,20 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
- :root {
+ /* :root {
   --background: #ffffff;
   --foreground: #171717;
   --toastify-color-success: #4caf50; /* Custom success color */
-  --toastify-color-error: #f44336;   /* Custom error color */
-  --toastify-font-family: "Arial", sans-serif;
+  /* --toastify-color-error: #f44336;   Custom error color */
+  /* --toastify-font-family: "Arial", sans-serif; */
   
-} 
- @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #050829;
-  }
-}
+/* }  */
+ /* @media (prefers-color-scheme: dark) { */
+  /* :root { */
+    /* --background: #0a0a0a; */
+    /* --foreground: #050829; */
+  /* } */
+/* }  */
 
 body {
   color: var(--foreground);

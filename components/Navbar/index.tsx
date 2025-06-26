@@ -26,6 +26,8 @@ const NavBar = () => {
     dispatch(setLoadingNavBar(true));
   };
 
+  const user = Cookies.get("Username") || "";
+
   return (
     <nav className={`${isOpen ? "navbar" : "navbar-closed"}`}>
       <button className="menu-toggle" onClick={handleToggle}>
@@ -33,33 +35,46 @@ const NavBar = () => {
       </button>
 
       {isOpen ? (
-        <ul className={`nav-links ${isOpen ? "open" : ""}`}>
-          <li>
-            <Link href="/dashboard" prefetch={null} onClick={handleClick}>
-              Home
-            </Link>
-          </li>
-          <li>
-            <Link href="/tasklist" prefetch={null} onClick={handleClick}>
-              Tasks
-            </Link>
-          </li>
-          <li>
-            <Link href="/add_task_tms" prefetch={null} onClick={handleClick}>
-              Add Task
-            </Link>
-          </li>
-          <li>
-            <Link href="/login" prefetch={null} onClick={handleLogOut}>
-              Log Out
-            </Link>
-          </li>
-        </ul>
+        <>
+          <ul className={`nav-links ${isOpen ? "open" : ""}`}>
+            <li>
+              <Link href="/dashboard" prefetch={true} onClick={handleClick}>
+                Home
+              </Link>
+            </li>
+            <li>
+              <Link href="/tasklist" prefetch={null} onClick={handleClick}>
+                Tasks
+              </Link>
+            </li>
+            <li>
+              <Link href="/add_task_tms" prefetch={null} onClick={handleClick}>
+                Add Task
+              </Link>
+            </li>
+            <li>
+              <Link href="/login" prefetch={null} onClick={handleLogOut}>
+                Log Out
+              </Link>
+            </li>
+          </ul>
+          <span style={{ float: "right" }}>
+            <label>Welcome {user}</label>
+          </span>
+        </>
       ) : (
         <span style={{ float: "right" }}>
-          <Link href="/login" prefetch={true} onClick={handleLogOut}>
-            Log Out
-          </Link>
+          <label>Welcome {user}</label>
+          <button className="px-4 py-1 mx-4 bg-blue-600 text-white rounded-2xl shadow hover:bg-blue-700 transition">
+            <Link
+              href="/login"
+              prefetch={false}
+              onClick={handleLogOut}
+              className="login-link text-sm"
+            >
+              Log Out
+            </Link>
+          </button>
         </span>
       )}
     </nav>

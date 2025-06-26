@@ -43,54 +43,58 @@ export default function LoginPage() {
     setErrors("");
   };
 
-  const handleSubmit = async (e: { preventDefault: () => void }) => {
-    e.preventDefault();
-    setErrors("");
-    if (!email || !password) {
-      setErrors("Email and password are required");
-      return;
-    }
-    if (!isValidEmail(email)) {
-      setErrors("Please enter a valid email");
-      return;
-    }
-    setSubmitted(true);
-    dispatch(getLoginDetails({ email, password })).then((res: any) => {
-      if (res?.error) {
-        setSubmitted(false);
-      }
-    });
+  const handleSubmit = () => {
+    console.log('inside')
+    // e.preventDefault();
+    // setErrors("");
+    // if (!email || !password) {
+    //   setErrors("Email and password are required");
+    //   return;
+    // }
+    // if (!isValidEmail(email)) {
+    //   setErrors("Please enter a valid email");
+    //   return;
+    // }
+    // setSubmitted(true);
+    router.push("/dashboardStudent");
+
+    // dispatch(getLoginDetails({ email, password })).then((res: any) => {
+    //   if (res?.error) {
+    //     setSubmitted(false);
+    //   }
+    // });
   };
 
   // ✅ **Redirect when userData is available**
-  useEffect(() => {
-    if (userData?.email) {
-      // Set a cookie named 'token' with a value 'valid-token'
-      // 'path=/' ensures the cookie is available on all pages
-      document.cookie = "token=valid-token; path=/";
+  // useEffect(() => {
+  //   if (userData?.email) {
+  //     // Set a cookie named 'token' with a value 'valid-token'
+  //     // 'path=/' ensures the cookie is available on all pages
+  //     document.cookie = "token=valid-token; path=/";
 
-      // Redirect the user to the protected dashboard page
-      router.push("/dashboard");
-      const permissionVal = userData?.permission
-        ? userData?.permission?.toString()
-        : "5";
-      localStorage.setItem("LoginUserPermission", permissionVal);
-      Cookies.set("LoginUserPermission", permissionVal, { expires: 7 });
-      dispatch(setPermission(permissionVal));
-      if (rememberMe) {
-        localStorage.setItem("LoginUser", userData?.email);
-      } else {
-        localStorage.removeItem("LoginUser");
-      }
-      toast.success("Success!");
-      Cookies.set("UserEmail", userData?.email, { expires: 7 });
-      localStorage.setItem("Username", userData?.username);
-      router.replace("/dashboard");
-    }
-  }, [userData, rememberMe, router]);
+  //     // Redirect the user to the protected dashboard page
+  //     router.push("/dashboard");
+  //     const permissionVal = userData?.permission
+  //       ? userData?.permission?.toString()
+  //       : "5";
+  //     localStorage.setItem("LoginUserPermission", permissionVal);
+  //     Cookies.set("LoginUserPermission", permissionVal, { expires: 7 });
+  //     dispatch(setPermission(permissionVal));
+  //     if (rememberMe) {
+  //       localStorage.setItem("LoginUser", userData?.email);
+  //     } else {
+  //       localStorage.removeItem("LoginUser");
+  //     }
+  //     toast.success("Success!");
+  //     Cookies.set("UserEmail", userData?.email, { expires: 7 });
+  //     Cookies.set("Username", userData?.username, { expires: 7 });
+  //     localStorage.setItem("Username", userData?.username);
+  //     router.replace("/dashboard");
+  //   }
+  // }, [userData, rememberMe, router]);
 
   useEffect(() => {
-    if (error || errors) {
+    if (errors) {
       toast.error(error || errors);
     }
   }, [error, errors]);
@@ -99,70 +103,70 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-gray-100">
       <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-lg">
         <h2 className="text-2xl font-semibold text-center mb-4">Login</h2>
-        {(error || errors) && (
-          <p className="text-red-500 text-sm mb-4">{error || errors}</p>
-        )}
-
-        {loading || submitted ? (
-          <Loader />
-        ) : (
-          <form onSubmit={handleSubmit}>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700">
-                Email
-              </label>
+        {errors && <p className="text-red-500 text-sm mb-4">{errors}</p>}
+        <>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">
+              Email
+            </label>
+            <input
+              type="text"
+              className="mt-1 p-2 w-full border rounded-md focus:ring focus:ring-blue-300"
+              value={email}
+              onChange={(e) => handleInput(e, "email")}
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">
+              Password
+            </label>
+            <input
+              type="password"
+              className="mt-1 p-2 w-full border rounded-md focus:ring focus:ring-blue-300"
+              value={password}
+              onChange={(e) => handleInput(e, "password")}
+            />
+          </div>
+          <div className="flex items-center justify-between mb-4">
+            <label className="flex items-center">
               <input
-                type="text"
-                className="mt-1 p-2 w-full border rounded-md focus:ring focus:ring-blue-300"
-                value={email}
-                onChange={(e) => handleInput(e, "email")}
+                type="checkbox"
+                className="mr-2"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
               />
-            </div>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
-              <input
-                type="password"
-                className="mt-1 p-2 w-full border rounded-md focus:ring focus:ring-blue-300"
-                value={password}
-                onChange={(e) => handleInput(e, "password")}
-              />
-            </div>
-            <div className="flex items-center justify-between mb-4">
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  className="mr-2"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                />
-                Remember Me
-              </label>
-              <a href="#" className="text-blue-500 text-sm">
-                Forgot password?
-              </a>
-            </div>
-            <button
-              type="submit"
-              className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-md transition"
-            >
-              Login
-            </button>
-            <div className="mt-3">
-              <p>
-                Dont have an account?{" "}
-                <Link
-                  href="/signup"
-                  prefetch={false}
-                  className="signup-link text-blue-500 text-sm"
-                >
-                  Signup
-                </Link>
-              </p>
-            </div>
-          </form>
-        )}
+              Remember Me
+            </label>
+            <a href="#" className="text-blue-500 text-sm">
+              Forgot password?
+            </a>
+          </div>
+          <button
+            type="button"
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-md transition"
+            onClick={handleSubmit}
+          >
+              {/* <Link
+                href="/dashboardStudent"
+                prefetch={false}
+               className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-md transition" */}
+              {/* > */}
+               Login
+              {/* </Link> */}
+          </button>
+          <div className="mt-3">
+            <p>
+              Dont have an account?{" "}
+              <Link
+                href="/signup"
+                prefetch={false}
+                className="signup-link text-blue-500 text-sm"
+              >
+                Signup
+              </Link>
+            </p>
+          </div>
+        </>
       </div>
     </div>
   );

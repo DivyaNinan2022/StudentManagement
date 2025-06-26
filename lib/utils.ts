@@ -1,13 +1,35 @@
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
+import { jsPDF } from "jspdf";
+
+export const exportToExcel = (data: any[], filename: string) => {
+  const worksheet = XLSX.utils.json_to_sheet(data);
+  const workbook = XLSX.utils.book_new();
+
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+
+  const excelBuffer = XLSX.write(workbook, {
+    bookType: "xlsx",
+    type: "array",
+  });
+
+  const fileData = new Blob([excelBuffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8",
+  });
+
+  saveAs(fileData, `${filename}.xlsx`);
+};
+
 export const formatEmailMessage = (msg: any, user: string) => {
-      // capitalize letter
+  // capitalize letter
   function capitalizeFirstLetter(name: any) {
     return name
-    .toLocaleLowerCase()
-    .split(" ")
-    .map((word:string) => word[0]?.toLocaleUpperCase() + word.slice(1))
-    .join(" ")
+      .toLocaleLowerCase()
+      .split(" ")
+      .map((word: string) => word[0]?.toLocaleUpperCase() + word.slice(1))
+      .join(" ");
   }
-    return encodeURIComponent(`
+  return encodeURIComponent(`
   Dear ${capitalizeFirstLetter(msg.assignee)},
   
   The task "${msg.tasktitle}" (ID: ${msg.id}) has been assigned to you.  
@@ -36,5 +58,10 @@ export const formatEmailMessage = (msg: any, user: string) => {
   Best regards,  
   ${user}
     `);
-  };
-  
+};
+
+export const downloadPDF = () => {
+  const doc = new jsPDF();
+  doc.text("Hello, this is your PDF content!", 10, 10);
+  doc.save("download.pdf");
+};
